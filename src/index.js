@@ -37,39 +37,48 @@ const MORSE_TABLE = {
   '-----':  '0',
 };
 
-const toSliceByTen = word => {
-  const chunks = [];
-  for (let i = 0; i < word.length; i += 10) {
-    chunks.push(word.slice(i, i + 10));
+const MORSE_SYMBOL_TABLE = {
+  '10': '.',
+  '11': '-'
+};
+const SPACE = '**********';
+
+const sliceBySize = (str, chunkSize) => {
+  let chunks = [], chunk = '';
+  for (let i = 0; i < str.length; i += 1) {
+    chunk += str[i];
+    if ((i + 1) % chunkSize === 0) {
+      chunks.push(chunk);
+      chunk = '';
+    }
   }
   return chunks;
+};
+
+const toSliceByTen = word => {
+  return sliceBySize(word, 10);
 };
 
 const toTrimmedZeros = word => {
   return word.map(letter => letter.slice(letter.indexOf('1')));
 };
 
+const toDecodedLetter = encodedLetter => {
+  const morseEncoded = sliceBySize(encodedLetter, 2)
+    .map(el => MORSE_SYMBOL_TABLE[el])
+    .join('');
+  return MORSE_TABLE[morseEncoded];
+};
+
 const toDecoded = encodedWord => {
-  const morseSymbolMap = {
-    '10': '.',
-    '11': '-'
-  };
   return encodedWord
-    .map(letter => {
-      let morseEncoded = '';
-      for (let i = 0; i < letter.length; i += 2) {
-        morseEncoded += morseSymbolMap[letter.slice(i, i + 2)];
-      }
-      return MORSE_TABLE[morseEncoded];
-    })
+    .map(toDecodedLetter)
     .join('');
 };
 
-function decode(expr) {
-  const space = '**********';
-  
+function decode(expr) { 
   return expr
-    .split(space)
+    .split(SPACE)
     .map(toSliceByTen)
     .map(toTrimmedZeros)
     .map(toDecoded)
